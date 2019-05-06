@@ -1,0 +1,53 @@
+---
+title: "Flights"
+author: "Gui Larangeira"
+date: "May 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r  include=FALSE}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+```
+
+```{r}
+OnTime_2019_1 <- read_csv("C:/Users/Glarange/Google Drive/Data_Inc/Project/Data/OnTime_2019_1.csv", 
+                          col_types = cols(FlightDate = col_date(format = "%m/%d/%Y")))
+
+delays <- OnTime_2019_1 %>% 
+  group_by(Operating_Airline) %>% 
+  summarise(
+    count = n(),
+    delayed = sum(DepDel15, na.rm = TRUE),
+    ndelay = count - delayed,
+    proportion = delayed/count) %>%
+    filter(count>15000)
+
+# You got to stack (melt) the data for ggplot2...
+delayed<-delays$delayed
+ndelay <- delays$ndelay
+opAir <- delays$Operating_Airline
+df1 <- data.frame(delayed,ndelay,opAir)
+df2 <- melt(df1,id.vars="opAir")
+
+```
+
+
+
+
+```{r}
+ggplot(df2, aes(x=opAir, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='stack') +
+  labs(x="Operating Airline", y="Count")+
+  ggtitle("Flight Delays per Operating Airline, January 2019")
+```
+
+
